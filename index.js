@@ -5,10 +5,18 @@ app.get('/', function (req, res) {
   res.send('Hello World!');
 });
 
-app.get('/hello', function (req, res) {
-  res.send('<h1>Hello World!</h1>');
-});
+// //hello
+// app.get('/hello', function (req, res) {
+//   res.send('<h1>Hello World!</h1>');
+// });
 
+//firstname
+app.get('/hello', function (req, res) {
+  
+  var firstName = req.query.name;
+  
+  res.send("<h1>Hello " + firstName + "!</h1>");
+});
 
 /* YOU DON'T HAVE TO CHANGE ANYTHING BELOW THIS LINE :) */
 
