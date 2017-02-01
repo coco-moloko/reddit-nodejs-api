@@ -85,6 +85,7 @@ module.exports = function RedditAPI(conn) {
         }
       );
     },
+    
     getAllPosts: function(options, callback) {
       // In case we are called without an options parameter, shift all the parameters manually
       if (!callback) {
@@ -95,8 +96,8 @@ module.exports = function RedditAPI(conn) {
       var offset = (options.page || 0) * limit;
       
       conn.query(`
-        SELECT id, title, url, userId, createdAt, updatedAt
-        FROM posts
+        SELECT posts.id, title, url, userId, posts.createdAt, posts.updatedAt, username
+        FROM posts JOIN users ON userId
         ORDER BY createdAt DESC
         LIMIT ? OFFSET ?`
         , [limit, offset],

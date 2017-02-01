@@ -23,3 +23,22 @@ CREATE TABLE `posts` (
   KEY `userId` (`userId`), -- why did we add this here? ask me :)
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE SET NULL
 );
+
+
+--new tabes 1
+
+-- INSERT INTO users SET
+--         username='Qwerty',
+--         password='password10',
+--         createdAt=2015-02-14,
+--         updatedAt=2015-03-20;
+        
+-- INSERT INTO posts SET
+--         title='Renard',
+--         url='www.reddit.com/renard',
+--         userId=2,
+--         createdAt=2015-02-14,
+--         updatedAt=2015-03-20;
+        
+SELECT posts.createdAt, users.username FROM posts
+LEFT JOIN users ON users.id LIMIT 5;
