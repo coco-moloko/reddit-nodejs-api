@@ -77,69 +77,94 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // });
 
-//EXERCISE 4 - map
+// //EXERCISE 4 - map
 
-app.get(`/posts`, function(req, res) {
-    redditAPI.getAllPosts({}, function(err, listOfPosts) {
-        if (err){
-            console.log(err);
-        } else {
-            console.log(listOfPosts);
+// app.get(`/posts`, function(req, res) {
+//     redditAPI.getAllPosts({}, function(err, listOfPosts) {
+//         if (err){
+//             console.log(err);
+//         } else {
+//             console.log(listOfPosts);
             
-        var output = `<div id="contents">
-                    <h1>List of contents</h1>
-                    <ul class="contents-list">
-        `;
+//         var output = `<div id="contents">
+//                     <h1>List of contents</h1>
+//                     <ul class="contents-list">
+//         `;
     
-        for(var i = 0; i < 5; i++) {
-            output += `<li class="content-item">
-                    <h2 class="content-item__title">
-                    <a href="${listOfPosts[i].url}">${listOfPosts[i].title}</a>
-                    </h2>
-                    <p>Created by ${listOfPosts[i].username}</p>
-                    </li>`;
-        }
+//         for(var i = 0; i < 5; i++) {
+//             output += `<li class="content-item">
+//                     <h2 class="content-item__title">
+//                     <a href="${listOfPosts[i].url}">${listOfPosts[i].title}</a>
+//                     </h2>
+//                     <p>Created by ${listOfPosts[i].username}</p>
+//                     </li>`;
+//         }
     
-    output += ` </ul>The end!
-                </div>`;
+//     output += ` </ul>The end!
+//                 </div>`;
     
-            res.send(output);
-        }
-    }); 
-});
+//             res.send(output);
+//         }
+//     }); 
+// });
 
 //EXERCISE 5
 
-app.get('/createContent', function (req, res) {
-    res.send(`<form action="/createContent" method="POST"> 
-  <div>
-    <input type="text" name="url" placeholder="Enter a URL to content">
-  </div>
-  <div>
-    <input type="text" name="title" placeholder="Enter the title of your content">
-  </div>
-  <button type="submit">Create!</button>
-    </form>`);
-});
+// app.get('/createContent', function (req, res) {
+//     res.send(`<form action="/createContent" method="POST"> 
+//   <div>
+//     <input type="text" name="url" placeholder="Enter a URL to content">
+//   </div>
+//   <div>
+//     <input type="text" name="title" placeholder="Enter the title of your content">
+//   </div>
+//   <button type="submit">Create!</button>
+//     </form>`);
+// });
 
 //EXERCISE 6
 
-app.post('/createContent', function(req, res){
-    console.log(req.body);
+// app.post('/createContent', function(req, res){
+//     console.log(req.body);
     
-    redditAPI.createPost({}, function(err, result) {
-    if (err) {
-        console.log(err);
-    } else {
-        // res.send("OK");
-        // res.send(req.body);
-        res.redirect('/posts');
-    }
-});
+//     redditAPI.createPost({}, function(err, result) {
+//     if (err) {
+//         console.log(err);
+//     } else {
+//         // res.send("OK");
+//         // res.send(req.body);
+//         res.redirect('/posts');
+//     }
+// });
+    
+// });
+
+//EXERCISE 7
+
+app.set('view engine', 'pug');
+
+app.get('/createContent', function (req, res) {
+  
+    res.render('create-content');
     
 });
 
-//EXERCISE 7
+//EXERCISE 7B
+
+app.set('view engine', 'pug');
+
+app.get(`/posts`, function(req, res) {
+    
+    req = redditAPI.getAllPosts({}, function(err, listOfPosts) {
+    if (err){
+        console.log(err);
+    } else {
+        console.log(listOfPosts);
+    
+        res.render('post-list', {posts: listOfPosts});
+        }
+    });
+});
 
 
 

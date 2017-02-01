@@ -15,6 +15,7 @@ module.exports = function RedditAPI(conn) {
             'INSERT INTO users (username,password, createdAt) VALUES (?, ?, ?)', [user.username, hashedPassword, new Date()],
             function(err, result) {
               if (err) {
+                console.log("That username is already taken");
                 /*
                 There can be many reasons why a MySQL query could fail. While many of
                 them are unknown, there's a particular error about unique usernames
@@ -96,9 +97,9 @@ module.exports = function RedditAPI(conn) {
       var offset = (options.page || 0) * limit;
       
       conn.query(`
-        SELECT posts.id, title, url, userId, posts.createdAt, posts.updatedAt, username
-        FROM posts JOIN users ON userId
-        ORDER BY createdAt DESC
+        SELECT posts.id, posts.title, posts.url, posts.userId, posts.createdAt, posts.updatedAt, users.username
+        FROM posts JOIN users ON posts.userId = users.id 
+        ORDER BY posts.createdAt 
         LIMIT ? OFFSET ?`
         , [limit, offset],
         function(err, results) {
@@ -111,5 +112,5 @@ module.exports = function RedditAPI(conn) {
         }
       );
     }
-  }
-}
+  };
+};
