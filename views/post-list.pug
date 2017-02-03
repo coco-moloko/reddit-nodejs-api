@@ -1,0 +1,10 @@
+extends layout.pug
+
+block content
+    h1 List of contents
+    ul(class='contents-list')
+    ul
+    each val in posts
+            h2= val.title
+            h3= val.url
+            p= val.username 

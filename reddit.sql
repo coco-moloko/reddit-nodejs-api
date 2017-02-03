@@ -23,3 +23,62 @@ CREATE TABLE `posts` (
   KEY `userId` (`userId`), -- why did we add this here? ask me :)
   CONSTRAINT `posts_ibfk_1` FOREIGN KEY (`userId`) REFERENCES `users` (`id`) ON DELETE SET NULL
 );
+
+--subreddits
+
+CREATE TABLE subreddits
+(
+id int NOT NULL AUTO_INCREMENT,
+name varchar(30) NOT NULL UNIQUE,
+description varchar(200),
+createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updatedAt TIMESTAMP,
+PRIMARY KEY (ID)
+);
+
+--make foreign key
+
+ALTER TABLE posts ADD COLUMN subredditId INT REFERENCES subreddits(id);
+
+--insert into
+
+INSERT INTO subreddits VALUES
+(
+id=NULL,
+name='Montreal',
+description='Everything about 514',
+createdAt=NOW(),
+updatedAt=NULL
+);
+
+INSERT INTO posts VALUES
+(
+  title='Check out this crazy thing',
+  url='www.reddit.com/crazything',
+  userId=3,
+  createdAt=2014-02-12
+);
+
+--get all posts full subreddit
+
+SELECT posts.id, posts.title, posts.url, subreddits.name, subreddits.description, subreddits.createdAt, subreddits.updatedAt
+FROM posts LEFT JOIN subreddits
+ON posts.subredditId = subreddits.id
+ORDER BY createdAt DESC;
+
+--votes table
+
+CREATE TABLE votes
+(
+userId int NOT NULL,
+postId int NOT NULL,
+vote TINYINT,
+createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updatedAt TIMESTAMP,
+PRIMARY KEY (userId, postId)
+);
+
+--two foreign keys
+
+ALTER TABLE votes ADD FOREIGN KEY (`postId`) REFERENCES posts(`id`);
+ALTER TABLE votes ADD FOREIGN KEY (`userId`) REFERENCES users(`id`);

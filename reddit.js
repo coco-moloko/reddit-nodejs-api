@@ -1,10 +1,12 @@
 var bcrypt = require('bcrypt');
 var HASH_ROUNDS = 10;
+var mysql = require('mysql');
+
 
 module.exports = function RedditAPI(conn) {
   return {
     createUser: function(user, callback) {
-      
+
       // first we have to hash the password...
       bcrypt.hash(user.password, HASH_ROUNDS, function(err, hashedPassword) {
         if (err) {
@@ -48,7 +50,7 @@ module.exports = function RedditAPI(conn) {
                       3b. If the insert succeeds, re-fetch the user from the DB
                       4. If the re-fetch succeeds, return the object to the caller
                       */
-                        callback(null, result[0]);
+                      callback(null, result[0]);
                     }
                   }
                 );
@@ -60,7 +62,7 @@ module.exports = function RedditAPI(conn) {
     },
     createPost: function(post, callback) {
       conn.query(
-        'INSERT INTO posts (userId, title, url, createdAt) VALUES (?, ?, ?, ?)', [post.userId, post.title, post.url, new Date()],
+        'INSERT INTO posts (userId, title, url, createdAt, subredditId) VALUES (?, ?, ?, ?, ?)', [post.userId, post.title, post.url, new Date(), post.subredditId],
         function(err, result) {
           if (err) {
             callback(err);
@@ -71,7 +73,7 @@ module.exports = function RedditAPI(conn) {
             the post and send it to the caller!
             */
             conn.query(
-              'SELECT id,title,url,userId, createdAt, updatedAt FROM posts WHERE id = ?', [result.insertId],
+              'SELECT id,title,url,userId, createdAt, updatedAt, subredditId FROM posts WHERE id = ?', [result.insertId],
               function(err, result) {
                 if (err) {
                   callback(err);
@@ -85,7 +87,36 @@ module.exports = function RedditAPI(conn) {
         }
       );
     },
-    getAllPosts: function(options, callback) {
+
+    createSubreddit: function(sub, callback) {
+      conn.query(
+        'INSERT INTO subreddits (name, description, createdAt) VALUES (?, ?, ?)', [sub.name, sub.description, new Date()],
+        function(err, result) {
+          if (err) {
+            callback(err);
+          }
+          else {
+            /*
+            Post inserted successfully. Let's use the result.insertId to retrieve
+            the post and send it to the caller!
+            */
+            conn.query(
+              'SELECT id,name, description createdAt FROM subreddits WHERE id = ?', [result.insertId],
+              function(err, result) {
+                if (err) {
+                  callback(err);
+                }
+                else {
+                  callback(null, result[0]);
+                }
+              }
+            );
+          }
+        }
+      );
+    },
+
+    getAllPostsWithSubreddit: function(options, callback) {
       // In case we are called without an options parameter, shift all the parameters manually
       if (!callback) {
         callback = options;
@@ -93,13 +124,13 @@ module.exports = function RedditAPI(conn) {
       }
       var limit = options.numPerPage || 25; // if options.numPerPage is "falsy" then use 25
       var offset = (options.page || 0) * limit;
-      
+
       conn.query(`
-        SELECT id, title, url, userId, createdAt, updatedAt
-        FROM posts
+        SELECT posts.id, posts.title, posts.url, subreddits.name, subreddits.description, subreddits.createdAt, subreddits.updatedAt
+        FROM posts LEFT JOIN subreddits
+        ON posts.subredditId = subreddits.id
         ORDER BY createdAt DESC
-        LIMIT ? OFFSET ?`
-        , [limit, offset],
+        LIMIT ? OFFSET ?`, [limit, offset],
         function(err, results) {
           if (err) {
             callback(err);
@@ -109,6 +140,50 @@ module.exports = function RedditAPI(conn) {
           }
         }
       );
+    },
+
+    getAllSubreddits: function(options, callback) {
+      // In case we are called without an options parameter, shift all the parameters manually
+      if (!callback) {
+        callback = options;
+        options = {};
+      }
+      var limit = options.numPerPage || 25; // if options.numPerPage is "falsy" then use 25
+      var offset = (options.page || 0) * limit;
+
+      conn.query(`
+        SELECT id, name, description, createdAt, updatedAt
+        FROM subreddits
+        ORDER BY createdAt DESC
+        LIMIT ? OFFSET ?`, [limit, offset],
+        function(err, results) {
+          if (err) {
+            callback(err);
+          }
+          else {
+            callback(null, results);
+          }
+        }
+      );
+    },
+
+    createOrUpdateVote: function(voteObj, callback) {
+      if (!(voteObj.votes === -1 || voteObj.votes === 0 || voteObj.votes === 1)) {
+        console.log("you're an idiot!");
+      }
+      else {
+        conn.query(`INSERT INTO votes SET postId=?, userId=?, vote=?, createdAt=NOW() ON DUPLICATE KEY UPDATE vote=?;`, [voteObj.postId, voteObj.userId, voteObj.vote, voteObj.vote],
+          function(err, theVote) {
+            if (err) {
+              console.log(err);
+            }
+            else {
+              callback(null, theVote);
+            }
+          });
+      }
+
     }
-  }
-}
+  };
+
+};
